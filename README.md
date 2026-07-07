@@ -1,0 +1,1 @@
+# nometnu_menedzeris
