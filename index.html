@@ -10,8 +10,8 @@
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #301466;
-      color: #5c3d99;
+      background: #f4f1ea;
+      color: #2b2118;
     }
 
     .container {
@@ -61,7 +61,7 @@
       margin-top: 15px;
       border: none;
       border-radius: 10px;
-      background: #38a3a5;
+      background: #5b3b1f;
       color: white;
       font-size: 18px;
       font-weight: bold;
@@ -78,7 +78,7 @@
     }
 
     .secondary-button {
-      background: #57cc99;
+      background: #8c735b;
     }
 
     .tower-grid {
@@ -113,7 +113,21 @@
     .choice-button {
       min-height: 90px;
       font-size: 22px;
-      background: #38a3a5;
+      background: #5b3b1f;
+    }
+
+    .quick-point-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .quick-point-button {
+      margin-top: 0;
+      padding: 10px;
+      font-size: 16px;
+      background: #8c735b;
     }
 
     .hidden {
@@ -141,7 +155,7 @@
     .professor-name,
     .selected-tower {
       text-align: center;
-      color: #301466;
+      color: #6e5743;
       font-weight: bold;
       margin-bottom: 20px;
     }
@@ -159,7 +173,7 @@
 
     <!-- LOGIN PAGE -->
     <section id="loginPage" class="card">
-      <h1>Mans burvju menedžeris</h1>
+      <h1>Maiņas menedžmenta sistēma</h1>
 
       <label for="professorName">Profesora vārds</label>
       <input type="text" id="professorName" placeholder="Ievadi savu vārdu" />
@@ -175,12 +189,15 @@
 
     <!-- MAIN MENU -->
     <section id="menuPage" class="card hidden">
-      <h1>Mans burvju menedžeris</h1>
+      <h1>Maiņas menedžmenta sistēma</h1>
       <div id="welcomeText" class="professor-name"></div>
 
       <button onclick="openPointsPage()">PUNKTI</button>
       <button onclick="openSituationRegister()">Situāciju reģistrs</button>
 
+      <button class="secondary-button" disabled>Veikals — drīzumā</button>
+      <button class="secondary-button" disabled>Nauda — drīzumā</button>
+      <button class="secondary-button" disabled>Atskaites — drīzumā</button>
 
       <button class="secondary-button" onclick="logout()">Iziet</button>
     </section>
@@ -237,10 +254,16 @@
       <input type="hidden" id="studentSelect" />
 
       <label for="individualPoints">Punktu skaits</label>
-      <input type="number" id="individualPoints" value="1" />
+      <input type="number" id="individualPoints" value="1" step="1" />
+      <div class="quick-point-grid">
+        <button type="button" class="quick-point-button" onclick="setIndividualPoints(1)">+1</button>
+        <button type="button" class="quick-point-button" onclick="setIndividualPoints(5)">+5</button>
+        <button type="button" class="quick-point-button" onclick="setIndividualPoints(-1)">-1</button>
+        <button type="button" class="quick-point-button" onclick="setIndividualPoints(-5)">-5</button>
+      </div>
 
       <label for="individualReason">Par ko tiek piešķirts punkts?</label>
-      <textarea id="individualReason" maxlength="250" placeholder="Piemēram: labi piedalījās nodarbībā"></textarea>
+      <textarea id="individualReason" maxlength="250" placeholder="Piemēram: labi piedalījās stundā"></textarea>
 
       <button id="saveIndividualButton" onclick="saveIndividualPoint()">
         Pievienot punktu
@@ -259,7 +282,13 @@
       <div id="towerPointTowerText" class="selected-tower"></div>
 
       <label for="towerPoints">Punktu skaits</label>
-      <input type="number" id="towerPoints" value="1" />
+      <input type="number" id="towerPoints" value="1" step="1" />
+      <div class="quick-point-grid">
+        <button type="button" class="quick-point-button" onclick="setTowerPoints(1)">+1</button>
+        <button type="button" class="quick-point-button" onclick="setTowerPoints(5)">+5</button>
+        <button type="button" class="quick-point-button" onclick="setTowerPoints(-1)">-1</button>
+        <button type="button" class="quick-point-button" onclick="setTowerPoints(-5)">-5</button>
+      </div>
 
       <label for="towerReason">Par ko tiek piešķirti punkti?</label>
       <textarea id="towerReason" maxlength="250" placeholder="Piemēram: uzvarēja komandas uzdevumā"></textarea>
@@ -448,18 +477,18 @@
       clearMessage("loginMessage");
 
       if (!professorName) {
-        showMessage("loginMessage", "Kā tevi sauc mazais burvi?", "error");
+        showMessage("loginMessage", "Lūdzu, ievadi profesora vārdu.", "error");
         return;
       }
 
       if (!pin) {
-        showMessage("loginMessage", "Vai tu zini paroli?", "error");
+        showMessage("loginMessage", "Lūdzu, ievadi PIN kodu.", "error");
         return;
       }
 
       const button = document.getElementById("loginButton");
       button.disabled = true;
-      button.textContent = "Meklēju tevi sistēmā...";
+      button.textContent = "Pārbauda...";
 
       try {
         const response = await apiCall({
@@ -469,7 +498,7 @@
         });
 
         if (!response.success) {
-          showMessage("loginMessage", response.error || "Boo hoo tu neesi īsts", "error");
+          showMessage("loginMessage", response.error || "Neizdevās ienākt sistēmā.", "error");
           return;
         }
 
@@ -483,14 +512,14 @@
 
         await loadAllStudents();
 
-        document.getElementById("welcomeText").textContent = "Čau čau, tavs vārds ir " + currentProfessorName + "!";
+        document.getElementById("welcomeText").textContent = "Sveiki, " + currentProfessorName + "!";
         goToPage("menuPage");
 
       } catch (error) {
         showMessage("loginMessage", error.message, "error");
       } finally {
         button.disabled = false;
-        button.textContent = "Laid mani iekšā!!!";
+        button.textContent = "Ienākt sistēmā";
       }
     }
 
@@ -594,7 +623,7 @@
       fillStudentDatalist("situationStudentOptions", studentsInTower);
 
       if (studentsInTower.length === 0) {
-        showMessage("situationMessage", "Šajā tornī nav audzēkņu.", "info");
+        showMessage("situationMessage", "Šajā tornī nav aktīvu audzēkņu.", "info");
       }
 
       goToPage("situationFormPage");
@@ -605,6 +634,27 @@
       const typedName = document.getElementById("situationStudentSearch").value;
       const student = findStudentByTypedName(typedName, selectedSituationTower);
       document.getElementById("situationStudentSelect").value = student ? student.studentId : "";
+    }
+
+
+    function setIndividualPoints(points) {
+      document.getElementById("individualPoints").value = points;
+    }
+
+
+    function setTowerPoints(points) {
+      document.getElementById("towerPoints").value = points;
+    }
+
+
+    function formatPointChange(points) {
+      const number = Number(points);
+
+      if (number > 0) {
+        return "+" + number;
+      }
+
+      return String(number);
     }
 
 
@@ -631,12 +681,12 @@
       }
 
       if (!whatHappened) {
-        showMessage("situationMessage", "Kas notika?", "error");
+        showMessage("situationMessage", "Lūdzu, ieraksti, kas notika.", "error");
         return;
       }
 
       if (!whatIDid) {
-        showMessage("situationMessage", "Ko darīji lietas labā?", "error");
+        showMessage("situationMessage", "Lūdzu, ieraksti, ko darīji lietas labā.", "error");
         return;
       }
 
@@ -722,7 +772,7 @@
 
         showMessage(
           "individualMessage",
-          "Punkts pievienots: " + response.student.displayName + " +" + response.points,
+          "Punkti pievienoti: " + response.student.displayName + " " + formatPointChange(response.points),
           "success"
         );
 
@@ -775,7 +825,7 @@
 
         showMessage(
           "towerMessage",
-          "Torņa punkti pievienoti: " + response.tower + " +" + response.points,
+          "Torņa punkti pievienoti: " + response.tower + " " + formatPointChange(response.points),
           "success"
         );
 
@@ -870,6 +920,8 @@
   window.openTowerPointForm = openTowerPointForm;
   window.saveIndividualPoint = saveIndividualPoint;
   window.saveTowerPoint = saveTowerPoint;
+  window.setIndividualPoints = setIndividualPoints;
+  window.setTowerPoints = setTowerPoints;
   window.goToPage = goToPage;
   window.openSituationRegister = openSituationRegister;
   window.chooseSituationType = chooseSituationType;
