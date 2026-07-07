@@ -10,8 +10,8 @@
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #f4f1ea;
-      color: #2b2118;
+      background: #301466;
+      color: #5c3d99;
     }
 
     .container {
@@ -61,7 +61,7 @@
       margin-top: 15px;
       border: none;
       border-radius: 10px;
-      background: #5b3b1f;
+      background: #38a3a5;
       color: white;
       font-size: 18px;
       font-weight: bold;
@@ -78,7 +78,7 @@
     }
 
     .secondary-button {
-      background: #8c735b;
+      background: #57cc99;
     }
 
     .tower-grid {
@@ -113,7 +113,7 @@
     .choice-button {
       min-height: 90px;
       font-size: 22px;
-      background: #5b3b1f;
+      background: #38a3a5;
     }
 
     .quick-point-grid {
@@ -127,7 +127,8 @@
       margin-top: 0;
       padding: 10px;
       font-size: 16px;
-      background: #8c735b;
+      background: #57cc99;
+      color: #301466;
     }
 
     .hidden {
@@ -155,7 +156,7 @@
     .professor-name,
     .selected-tower {
       text-align: center;
-      color: #6e5743;
+      color: #301466;
       font-weight: bold;
       margin-bottom: 20px;
     }
@@ -173,7 +174,7 @@
 
     <!-- LOGIN PAGE -->
     <section id="loginPage" class="card">
-      <h1>Maiņas menedžmenta sistēma</h1>
+      <h1>Mans burvju menedžeris</h1>
 
       <label for="professorName">Profesora vārds</label>
       <input type="text" id="professorName" placeholder="Ievadi savu vārdu" />
@@ -189,15 +190,12 @@
 
     <!-- MAIN MENU -->
     <section id="menuPage" class="card hidden">
-      <h1>Maiņas menedžmenta sistēma</h1>
+      <h1>Mans burvju menedžeris</h1>
       <div id="welcomeText" class="professor-name"></div>
 
       <button onclick="openPointsPage()">PUNKTI</button>
       <button onclick="openSituationRegister()">Situāciju reģistrs</button>
 
-      <button class="secondary-button" disabled>Veikals — drīzumā</button>
-      <button class="secondary-button" disabled>Nauda — drīzumā</button>
-      <button class="secondary-button" disabled>Atskaites — drīzumā</button>
 
       <button class="secondary-button" onclick="logout()">Iziet</button>
     </section>
@@ -263,7 +261,7 @@
       </div>
 
       <label for="individualReason">Par ko tiek piešķirts punkts?</label>
-      <textarea id="individualReason" maxlength="250" placeholder="Piemēram: labi piedalījās stundā"></textarea>
+      <textarea id="individualReason" maxlength="250" placeholder="Piemēram: labi piedalījās nodarbībā"></textarea>
 
       <button id="saveIndividualButton" onclick="saveIndividualPoint()">
         Pievienot punktu
@@ -477,18 +475,18 @@
       clearMessage("loginMessage");
 
       if (!professorName) {
-        showMessage("loginMessage", "Lūdzu, ievadi profesora vārdu.", "error");
+        showMessage("loginMessage", "Kā tevi sauc mazais burvi?", "error");
         return;
       }
 
       if (!pin) {
-        showMessage("loginMessage", "Lūdzu, ievadi PIN kodu.", "error");
+        showMessage("loginMessage", "Vai tu zini paroli?", "error");
         return;
       }
 
       const button = document.getElementById("loginButton");
       button.disabled = true;
-      button.textContent = "Pārbauda...";
+      button.textContent = "Meklēju tevi sistēmā...";
 
       try {
         const response = await apiCall({
@@ -498,7 +496,7 @@
         });
 
         if (!response.success) {
-          showMessage("loginMessage", response.error || "Neizdevās ienākt sistēmā.", "error");
+          showMessage("loginMessage", response.error || "Boo hoo tu neesi īsts", "error");
           return;
         }
 
@@ -512,14 +510,14 @@
 
         await loadAllStudents();
 
-        document.getElementById("welcomeText").textContent = "Sveiki, " + currentProfessorName + "!";
+        document.getElementById("welcomeText").textContent = "Čau čau, tavs vārds ir " + currentProfessorName + "!";
         goToPage("menuPage");
 
       } catch (error) {
         showMessage("loginMessage", error.message, "error");
       } finally {
         button.disabled = false;
-        button.textContent = "Ienākt sistēmā";
+        button.textContent = "Laid mani iekšā!!!";
       }
     }
 
@@ -623,7 +621,7 @@
       fillStudentDatalist("situationStudentOptions", studentsInTower);
 
       if (studentsInTower.length === 0) {
-        showMessage("situationMessage", "Šajā tornī nav aktīvu audzēkņu.", "info");
+        showMessage("situationMessage", "Šajā tornī nav audzēkņu.", "info");
       }
 
       goToPage("situationFormPage");
@@ -681,12 +679,12 @@
       }
 
       if (!whatHappened) {
-        showMessage("situationMessage", "Lūdzu, ieraksti, kas notika.", "error");
+        showMessage("situationMessage", "Kas notika?", "error");
         return;
       }
 
       if (!whatIDid) {
-        showMessage("situationMessage", "Lūdzu, ieraksti, ko darīji lietas labā.", "error");
+        showMessage("situationMessage", "Ko darīji lietas labā?", "error");
         return;
       }
 
@@ -772,7 +770,7 @@
 
         showMessage(
           "individualMessage",
-          "Punkti pievienoti: " + response.student.displayName + " " + formatPointChange(response.points),
+          "Punkts pievienots: " + response.student.displayName + " " + formatPointChange(response.points),
           "success"
         );
 
