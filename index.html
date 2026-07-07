@@ -252,7 +252,7 @@
       <input type="hidden" id="studentSelect" />
 
       <label for="individualPoints">Punktu skaits</label>
-      <input type="number" id="individualPoints" value="1" step="1" />
+      <input type="number" id="individualPoints" value="0" step="1" />
       <div class="quick-point-grid">
         <button type="button" class="quick-point-button" onclick="setIndividualPoints(1)">+1</button>
         <button type="button" class="quick-point-button" onclick="setIndividualPoints(5)">+5</button>
@@ -280,7 +280,7 @@
       <div id="towerPointTowerText" class="selected-tower"></div>
 
       <label for="towerPoints">Punktu skaits</label>
-      <input type="number" id="towerPoints" value="1" step="1" />
+      <input type="number" id="towerPoints" value="0" step="1" />
       <div class="quick-point-grid">
         <button type="button" class="quick-point-button" onclick="setTowerPoints(1)">+1</button>
         <button type="button" class="quick-point-button" onclick="setTowerPoints(5)">+5</button>
@@ -557,7 +557,7 @@
       document.getElementById("individualTowerText").textContent = "Tornis: " + selectedTower;
       document.getElementById("studentSearch").value = "";
       document.getElementById("studentSelect").value = "";
-      document.getElementById("individualPoints").value = 1;
+      document.getElementById("individualPoints").value = 0;
       document.getElementById("individualReason").value = "";
       clearMessage("individualMessage");
 
@@ -581,7 +581,7 @@
 
     function openTowerPointForm() {
       document.getElementById("towerPointTowerText").textContent = "Tornis: " + selectedTower;
-      document.getElementById("towerPoints").value = 1;
+      document.getElementById("towerPoints").value = 0;
       document.getElementById("towerReason").value = "";
       clearMessage("towerMessage");
 
@@ -635,13 +635,20 @@
     }
 
 
+    function addPointsToInput(inputId, change) {
+      const input = document.getElementById(inputId);
+      const currentValue = Number(input.value) || 0;
+      input.value = currentValue + Number(change);
+    }
+
+
     function setIndividualPoints(points) {
-      document.getElementById("individualPoints").value = points;
+      addPointsToInput("individualPoints", points);
     }
 
 
     function setTowerPoints(points) {
-      document.getElementById("towerPoints").value = points;
+      addPointsToInput("towerPoints", points);
     }
 
 
@@ -775,7 +782,7 @@
         );
 
         document.getElementById("individualReason").value = "";
-        document.getElementById("individualPoints").value = 1;
+        document.getElementById("individualPoints").value = 0;
 
       } catch (error) {
         showMessage("individualMessage", error.message, "error");
@@ -828,7 +835,7 @@
         );
 
         document.getElementById("towerReason").value = "";
-        document.getElementById("towerPoints").value = 1;
+        document.getElementById("towerPoints").value = 0;
 
       } catch (error) {
         showMessage("towerMessage", error.message, "error");
