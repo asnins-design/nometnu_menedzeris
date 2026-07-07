@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Maiņas menedžmenta sistēma</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #301466;
+      color: #5c3d99;
+    }
+
+    .container {
+      max-width: 760px;
+      margin: auto;
+      padding: 30px 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+      margin-top: 30px;
+    }
+
+    h1, h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px;
+      margin-top: 6px;
+      border-radius: 8px;
+      border: 1px solid #bbb;
+      font-size: 16px;
+      font-family: Arial, sans-serif;
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 15px;
+      border: none;
+      border-radius: 10px;
+      background: #38a3a5;
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .secondary-button {
+      background: #57cc99;
+    }
+
+    .tower-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .tower-button {
+      min-height: 100px;
+      font-size: 24px;
+    }
+
+    .laci {
+      background: #2e8b57;
+    }
+
+    .lusi {
+      background: #f1c40f;
+      color: #2b2118;
+    }
+
+    .puces {
+      background: #2980b9;
+    }
+
+    .vaveres {
+      background: #c0392b;
+    }
+
+    .choice-button {
+      min-height: 90px;
+      font-size: 22px;
+      background: #38a3a5;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .message {
+      text-align: center;
+      margin-top: 16px;
+      font-weight: bold;
+    }
+
+    .error {
+      color: #a00000;
+    }
+
+    .success {
+      color: #1f7a35;
+    }
+
+    .info {
+      color: #5b3b1f;
+    }
+
+    .professor-name,
+    .selected-tower {
+      text-align: center;
+      color: #301466;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 500px) {
+      .tower-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <!-- LOGIN PAGE -->
+    <section id="loginPage" class="card">
+      <h1>Mans burvju menedžeris</h1>
+
+      <label for="professorName">Profesora vārds</label>
+      <input type="text" id="professorName" placeholder="Ievadi savu vārdu" />
+
+      <label for="pinCode">PIN kods</label>
+      <input type="password" id="pinCode" placeholder="Ievadi PIN kodu" />
+
+      <button id="loginButton" onclick="login()">Ienākt sistēmā</button>
+
+      <div id="loginMessage" class="message"></div>
+    </section>
+
+
+    <!-- MAIN MENU -->
+    <section id="menuPage" class="card hidden">
+      <h1>Mans burvju menedžeris</h1>
+      <div id="welcomeText" class="professor-name"></div>
+
+      <button onclick="openPointsPage()">PUNKTI</button>
+      <button onclick="openSituationRegister()">Situāciju reģistrs</button>
+
+
+      <button class="secondary-button" onclick="logout()">Iziet</button>
+    </section>
+
+
+    <!-- TOWER CHOICE PAGE -->
+    <section id="pointsPage" class="card hidden">
+      <h2>Izvēlies torni</h2>
+
+      <div class="tower-grid">
+        <button class="tower-button laci" onclick="chooseTower('Lāči')">Lāči</button>
+        <button class="tower-button lusi" onclick="chooseTower('Lūši')">Lūši</button>
+        <button class="tower-button puces" onclick="chooseTower('Pūces')">Pūces</button>
+        <button class="tower-button vaveres" onclick="chooseTower('Vāveres')">Vāveres</button>
+      </div>
+
+      <button class="secondary-button" onclick="goToPage('menuPage')">Atpakaļ uz izvēlni</button>
+    </section>
+
+
+    <!-- POINT TYPE PAGE -->
+    <section id="addPointsPage" class="card hidden">
+      <h2>Laiks pievienot punktus</h2>
+
+      <div id="selectedTowerText" class="selected-tower"></div>
+
+      <button class="choice-button" onclick="openIndividualPointForm()">
+        Individuālais punkts
+      </button>
+
+      <button class="choice-button" onclick="openTowerPointForm()">
+        Punkti visam tornim
+      </button>
+
+      <button class="secondary-button" onclick="goToPage('pointsPage')">Atpakaļ uz torņiem</button>
+    </section>
+
+
+    <!-- INDIVIDUAL POINT FORM -->
+    <section id="individualPointPage" class="card hidden">
+      <h2>Individuālais punkts</h2>
+
+      <div id="individualTowerText" class="selected-tower"></div>
+
+      <label for="studentSearch">Izvēlies audzēkni</label>
+      <input
+        type="text"
+        id="studentSearch"
+        list="individualStudentOptions"
+        placeholder="Sāc rakstīt vārdu vai uzvārdu..."
+        oninput="syncIndividualStudentSelection()"
+      />
+      <datalist id="individualStudentOptions"></datalist>
+      <input type="hidden" id="studentSelect" />
+
+      <label for="individualPoints">Punktu skaits</label>
+      <input type="number" id="individualPoints" value="1" />
+
+      <label for="individualReason">Par ko tiek piešķirts punkts?</label>
+      <textarea id="individualReason" maxlength="250" placeholder="Piemēram: labi piedalījās nodarbībā"></textarea>
+
+      <button id="saveIndividualButton" onclick="saveIndividualPoint()">
+        Pievienot punktu
+      </button>
+
+      <div id="individualMessage" class="message"></div>
+
+      <button class="secondary-button" onclick="goToPage('menuPage')">Iet uz sākumu</button>
+    </section>
+
+
+    <!-- TOWER POINT FORM -->
+    <section id="towerPointPage" class="card hidden">
+      <h2>Punkti visam tornim</h2>
+
+      <div id="towerPointTowerText" class="selected-tower"></div>
+
+      <label for="towerPoints">Punktu skaits</label>
+      <input type="number" id="towerPoints" value="1" />
+
+      <label for="towerReason">Par ko tiek piešķirti punkti?</label>
+      <textarea id="towerReason" maxlength="250" placeholder="Piemēram: uzvarēja komandas uzdevumā"></textarea>
+
+      <button id="saveTowerButton" onclick="saveTowerPoint()">
+        Pievienot punktus tornim
+      </button>
+
+      <div id="towerMessage" class="message"></div>
+
+      <button class="secondary-button" onclick="goToPage('menuPage')">Iet uz sākumu</button>
+    </section>
+
+
+    <!-- SITUATION REGISTER TYPE PAGE -->
+    <section id="situationTypePage" class="card hidden">
+      <h2>Situāciju reģistrs</h2>
+
+      <button class="choice-button" onclick="chooseSituationType('Nedarbs')">
+        Nedarbs
+      </button>
+
+      <button class="choice-button" onclick="chooseSituationType('Veselība')">
+        Veselība
+      </button>
+
+      <button class="secondary-button" onclick="goToPage('menuPage')">Atpakaļ uz izvēlni</button>
+    </section>
+
+
+    <!-- SITUATION TOWER CHOICE PAGE -->
+    <section id="situationTowerPage" class="card hidden">
+      <h2 id="situationTowerTitle">Izvēlies torni</h2>
+
+      <div class="tower-grid">
+        <button class="tower-button laci" onclick="chooseSituationTower('Lāči')">Lāči</button>
+        <button class="tower-button lusi" onclick="chooseSituationTower('Lūši')">Lūši</button>
+        <button class="tower-button puces" onclick="chooseSituationTower('Pūces')">Pūces</button>
+        <button class="tower-button vaveres" onclick="chooseSituationTower('Vāveres')">Vāveres</button>
+      </div>
+
+      <button class="secondary-button" onclick="goToPage('situationTypePage')">Atpakaļ</button>
+    </section>
+
+
+    <!-- SITUATION FORM PAGE -->
+    <section id="situationFormPage" class="card hidden">
+      <h2 id="situationFormTitle">Situācijas reģistrēšana</h2>
+
+      <div id="situationTowerText" class="selected-tower"></div>
+
+      <label for="situationStudentSearch">Izvēlies audzēkni</label>
+      <input
+        type="text"
+        id="situationStudentSearch"
+        list="situationStudentOptions"
+        placeholder="Sāc rakstīt vārdu vai uzvārdu..."
+        oninput="syncSituationStudentSelection()"
+      />
+      <datalist id="situationStudentOptions"></datalist>
+      <input type="hidden" id="situationStudentSelect" />
+
+      <label for="whatHappened">Kas notika?</label>
+      <textarea id="whatHappened" maxlength="500" placeholder="Īsi apraksti situāciju"></textarea>
+
+      <label for="whatIDid">Ko darīju lietas labā?</label>
+      <textarea id="whatIDid" maxlength="500" placeholder="Īsi apraksti, kā rīkojies"></textarea>
+
+      <button id="saveSituationButton" onclick="saveSituation()">
+        Reģistrēt situāciju
+      </button>
+
+      <div id="situationMessage" class="message"></div>
+
+      <button class="secondary-button" onclick="goToPage('menuPage')">Iet uz sākumu</button>
+    </section>
+
+  </div>
+
+
+  <script>
+    /************************************
+     * IMPORTANT:
+     * Paste your deployed Apps Script URL here.
+     ************************************/
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyrWJ32tjcW5UVKfVdI8kHxvX50CCqILIo6BGdiy4XxUJbB6xzUt5wQ64o0et32wjY9/exec";
+
+    let currentProfessorName = sessionStorage.getItem("professorName") || "";
+    let currentPin = sessionStorage.getItem("pin") || "";
+    let selectedTower = sessionStorage.getItem("selectedTower") || "";
+    let currentSituationType = "";
+    let selectedSituationTower = "";
+    
+    let allStudents = [];
+    
+    try {
+      allStudents = JSON.parse(sessionStorage.getItem("allStudents") || "[]");
+    } catch (error) {
+      allStudents = [];
+    }
+
+
+    function apiCall(params) {
+      return new Promise((resolve, reject) => {
+        const callbackName = "jsonpCallback_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+
+        params.callback = callbackName;
+        params.cacheBuster = Date.now();
+
+        const url = SCRIPT_URL + "?" + new URLSearchParams(params).toString();
+
+        const script = document.createElement("script");
+        script.src = url;
+
+        window[callbackName] = function(response) {
+          delete window[callbackName];
+          script.remove();
+          resolve(response);
+        };
+
+        script.onerror = function() {
+          delete window[callbackName];
+          script.remove();
+          reject(new Error("Neizdevās savienoties ar Apps Script."));
+        };
+
+        document.body.appendChild(script);
+      });
+    }
+    async function loadAllStudents() {
+      const response = await apiCall({
+        action: "getAllStudents",
+        professorName: currentProfessorName,
+        pin: currentPin
+      });
+    
+      if (!response.success) {
+        throw new Error(response.error || "Neizdevās ielādēt audzēkņus.");
+      }
+    
+      allStudents = response.students || [];
+      sessionStorage.setItem("allStudents", JSON.stringify(allStudents));
+    
+      return allStudents;
+    }
+
+    function showMessage(elementId, text, type) {
+      const element = document.getElementById(elementId);
+      element.textContent = text;
+      element.className = "message " + type;
+    }
+
+
+    function clearMessage(elementId) {
+      const element = document.getElementById(elementId);
+      element.textContent = "";
+      element.className = "message";
+    }
+
+
+    function goToPage(pageId) {
+      const pages = [
+        "loginPage",
+        "menuPage",
+        "pointsPage",
+        "addPointsPage",
+        "individualPointPage",
+        "towerPointPage",
+        "situationTypePage",
+        "situationTowerPage",
+        "situationFormPage"
+      ];
+
+      pages.forEach(id => {
+        document.getElementById(id).classList.add("hidden");
+      });
+
+      document.getElementById(pageId).classList.remove("hidden");
+    }
+
+
+    async function login() {
+      const professorName = document.getElementById("professorName").value.trim();
+      const pin = document.getElementById("pinCode").value.trim();
+
+      clearMessage("loginMessage");
+
+      if (!professorName) {
+        showMessage("loginMessage", "Kā tevi sauc mazais burvi?", "error");
+        return;
+      }
+
+      if (!pin) {
+        showMessage("loginMessage", "Vai tu zini paroli?", "error");
+        return;
+      }
+
+      const button = document.getElementById("loginButton");
+      button.disabled = true;
+      button.textContent = "Meklēju tevi sistēmā...";
+
+      try {
+        const response = await apiCall({
+          action: "login",
+          professorName: professorName,
+          pin: pin
+        });
+
+        if (!response.success) {
+          showMessage("loginMessage", response.error || "Boo hoo tu neesi īsts", "error");
+          return;
+        }
+
+        currentProfessorName = response.professorName;
+        currentPin = pin;
+
+        sessionStorage.setItem("professorName", currentProfessorName);
+        sessionStorage.setItem("pin", currentPin);
+
+        showMessage("loginMessage", "Ielādē audzēkņu sarakstu...", "info");
+
+        await loadAllStudents();
+
+        document.getElementById("welcomeText").textContent = "Čau čau, tavs vārds ir " + currentProfessorName + "!";
+        goToPage("menuPage");
+
+      } catch (error) {
+        showMessage("loginMessage", error.message, "error");
+      } finally {
+        button.disabled = false;
+        button.textContent = "Laid mani iekšā!!!";
+      }
+    }
+
+
+    function logout() {
+      currentProfessorName = "";
+      currentPin = "";
+      selectedTower = "";
+      allStudents = [];
+      sessionStorage.removeItem("professorName");
+      sessionStorage.removeItem("pin");
+      sessionStorage.removeItem("selectedTower");
+      sessionStorage.removeItem("allStudents");
+      document.getElementById("professorName").value = "";
+      document.getElementById("pinCode").value = "";
+
+      goToPage("loginPage");
+    }
+
+
+    function openPointsPage() {
+      goToPage("pointsPage");
+    }
+
+
+    function chooseTower(towerName) {
+      selectedTower = towerName;
+      sessionStorage.setItem("selectedTower", selectedTower);
+
+      document.getElementById("selectedTowerText").textContent = "Izvēlētais tornis: " + selectedTower;
+
+      goToPage("addPointsPage");
+    }
+
+
+    function openIndividualPointForm() {
+      document.getElementById("individualTowerText").textContent = "Tornis: " + selectedTower;
+      document.getElementById("studentSearch").value = "";
+      document.getElementById("studentSelect").value = "";
+      document.getElementById("individualPoints").value = 1;
+      document.getElementById("individualReason").value = "";
+      clearMessage("individualMessage");
+
+      const studentsInTower = getStudentsForTower(selectedTower, "");
+      fillStudentDatalist("individualStudentOptions", studentsInTower);
+
+      if (studentsInTower.length === 0) {
+        showMessage("individualMessage", "Šajā tornī nav aktīvu audzēkņu.", "info");
+      }
+
+      goToPage("individualPointPage");
+    }
+
+
+    function syncIndividualStudentSelection() {
+      const typedName = document.getElementById("studentSearch").value;
+      const student = findStudentByTypedName(typedName, selectedTower);
+      document.getElementById("studentSelect").value = student ? student.studentId : "";
+    }
+
+
+    function openTowerPointForm() {
+      document.getElementById("towerPointTowerText").textContent = "Tornis: " + selectedTower;
+      document.getElementById("towerPoints").value = 1;
+      document.getElementById("towerReason").value = "";
+      clearMessage("towerMessage");
+
+      goToPage("towerPointPage");
+    }
+
+
+    function openSituationRegister() {
+      currentSituationType = "";
+      selectedSituationTower = "";
+      goToPage("situationTypePage");
+    }
+
+
+    function chooseSituationType(type) {
+      currentSituationType = type;
+      selectedSituationTower = "";
+
+      document.getElementById("situationTowerTitle").textContent = type + " — izvēlies torni";
+      goToPage("situationTowerPage");
+    }
+
+
+    function chooseSituationTower(towerName) {
+      selectedSituationTower = towerName;
+
+      document.getElementById("situationFormTitle").textContent = currentSituationType;
+      document.getElementById("situationTowerText").textContent = "Tornis: " + selectedSituationTower;
+
+      document.getElementById("situationStudentSearch").value = "";
+      document.getElementById("situationStudentSelect").value = "";
+      document.getElementById("whatHappened").value = "";
+      document.getElementById("whatIDid").value = "";
+      clearMessage("situationMessage");
+
+      const studentsInTower = getStudentsForTower(selectedSituationTower, "");
+      fillStudentDatalist("situationStudentOptions", studentsInTower);
+
+      if (studentsInTower.length === 0) {
+        showMessage("situationMessage", "Šajā tornī nav audzēkņu.", "info");
+      }
+
+      goToPage("situationFormPage");
+    }
+
+
+    function syncSituationStudentSelection() {
+      const typedName = document.getElementById("situationStudentSearch").value;
+      const student = findStudentByTypedName(typedName, selectedSituationTower);
+      document.getElementById("situationStudentSelect").value = student ? student.studentId : "";
+    }
+
+
+    async function saveSituation() {
+      const studentId = document.getElementById("situationStudentSelect").value;
+      const whatHappened = document.getElementById("whatHappened").value.trim();
+      const whatIDid = document.getElementById("whatIDid").value.trim();
+
+      clearMessage("situationMessage");
+
+      if (!currentSituationType) {
+        showMessage("situationMessage", "Nav izvēlēts situācijas tips.", "error");
+        return;
+      }
+
+      if (!selectedSituationTower) {
+        showMessage("situationMessage", "Nav izvēlēts tornis.", "error");
+        return;
+      }
+
+      if (!studentId) {
+        showMessage("situationMessage", "Lūdzu, izvēlies audzēkni no saraksta.", "error");
+        return;
+      }
+
+      if (!whatHappened) {
+        showMessage("situationMessage", "Kas notika?", "error");
+        return;
+      }
+
+      if (!whatIDid) {
+        showMessage("situationMessage", "Ko darīji lietas labā?", "error");
+        return;
+      }
+
+      const button = document.getElementById("saveSituationButton");
+      button.disabled = true;
+      button.textContent = "Saglabā...";
+
+      try {
+        const response = await apiCall({
+          action: "addSituation",
+          professorName: currentProfessorName,
+          pin: currentPin,
+          situationType: currentSituationType,
+          tower: selectedSituationTower,
+          studentId: studentId,
+          whatHappened: whatHappened,
+          whatIDid: whatIDid
+        });
+
+        if (!response.success) {
+          showMessage("situationMessage", response.error || "Neizdevās saglabāt situāciju.", "error");
+          return;
+        }
+
+        showMessage(
+          "situationMessage",
+          currentSituationType + " reģistrēts: " + response.student.displayName,
+          "success"
+        );
+
+        document.getElementById("whatHappened").value = "";
+        document.getElementById("whatIDid").value = "";
+
+      } catch (error) {
+        showMessage("situationMessage", error.message, "error");
+      } finally {
+        button.disabled = false;
+        button.textContent = "Reģistrēt situāciju";
+      }
+    }
+
+
+    async function saveIndividualPoint() {
+      const studentId = document.getElementById("studentSelect").value;
+      const points = document.getElementById("individualPoints").value;
+      const reason = document.getElementById("individualReason").value.trim();
+
+      clearMessage("individualMessage");
+
+      if (!studentId) {
+        showMessage("individualMessage", "Lūdzu, izvēlies audzēkni no saraksta.", "error");
+        return;
+      }
+
+      if (!points || Number(points) === 0) {
+        showMessage("individualMessage", "Punktu skaits nevar būt 0.", "error");
+        return;
+      }
+
+      if (!reason) {
+        showMessage("individualMessage", "Lūdzu, ieraksti, par ko tiek piešķirts punkts.", "error");
+        return;
+      }
+
+      const button = document.getElementById("saveIndividualButton");
+      button.disabled = true;
+      button.textContent = "Saglabā...";
+
+      try {
+        const response = await apiCall({
+          action: "addIndividualPoint",
+          professorName: currentProfessorName,
+          pin: currentPin,
+          studentId: studentId,
+          points: points,
+          reason: reason
+        });
+
+        if (!response.success) {
+          showMessage("individualMessage", response.error || "Neizdevās saglabāt punktu.", "error");
+          return;
+        }
+
+        showMessage(
+          "individualMessage",
+          "Punkts pievienots: " + response.student.displayName + " +" + response.points,
+          "success"
+        );
+
+        document.getElementById("individualReason").value = "";
+        document.getElementById("individualPoints").value = 1;
+
+      } catch (error) {
+        showMessage("individualMessage", error.message, "error");
+      } finally {
+        button.disabled = false;
+        button.textContent = "Pievienot punktu";
+      }
+    }
+
+
+    async function saveTowerPoint() {
+      const points = document.getElementById("towerPoints").value;
+      const reason = document.getElementById("towerReason").value.trim();
+
+      clearMessage("towerMessage");
+
+      if (!points || Number(points) === 0) {
+        showMessage("towerMessage", "Punktu skaits nevar būt 0.", "error");
+        return;
+      }
+
+      if (!reason) {
+        showMessage("towerMessage", "Lūdzu, ieraksti, par ko tiek piešķirti punkti.", "error");
+        return;
+      }
+
+      const button = document.getElementById("saveTowerButton");
+      button.disabled = true;
+      button.textContent = "Saglabā...";
+
+      try {
+        const response = await apiCall({
+          action: "addTowerPoint",
+          professorName: currentProfessorName,
+          pin: currentPin,
+          tower: selectedTower,
+          points: points,
+          reason: reason
+        });
+
+        if (!response.success) {
+          showMessage("towerMessage", response.error || "Neizdevās saglabāt torņa punktus.", "error");
+          return;
+        }
+
+        showMessage(
+          "towerMessage",
+          "Torņa punkti pievienoti: " + response.tower + " +" + response.points,
+          "success"
+        );
+
+        document.getElementById("towerReason").value = "";
+        document.getElementById("towerPoints").value = 1;
+
+      } catch (error) {
+        showMessage("towerMessage", error.message, "error");
+      } finally {
+        button.disabled = false;
+        button.textContent = "Pievienot punktus tornim";
+      }
+    }
+    function getStudentsForTower(tower, searchTerm) {
+      const normalizedTower = normalizeTextForApp(tower);
+      const normalizedSearch = normalizeTextForApp(searchTerm);
+
+      return allStudents
+        .filter(student => {
+          const sameTower = normalizeTextForApp(student.tower) === normalizedTower;
+          const searchableText = normalizeTextForApp(
+            student.displayName + " " + student.firstName + " " + student.lastName
+          );
+
+          return sameTower && (!normalizedSearch || searchableText.includes(normalizedSearch));
+        })
+        .sort((a, b) => {
+          return a.displayName.localeCompare(b.displayName, "lv");
+        });
+    }
+
+
+    function fillStudentDatalist(datalistId, students) {
+      const datalist = document.getElementById(datalistId);
+      datalist.innerHTML = "";
+
+      students.forEach(student => {
+        const option = document.createElement("option");
+        option.value = student.displayName;
+        option.label = student.tower;
+        datalist.appendChild(option);
+      });
+    }
+
+
+    function findStudentByTypedName(typedName, tower) {
+      const normalizedTypedName = normalizeTextForApp(typedName);
+
+      if (!normalizedTypedName) {
+        return null;
+      }
+
+      return getStudentsForTower(tower, "").find(student => {
+        return normalizeTextForApp(student.displayName) === normalizedTypedName;
+      }) || null;
+    }
+
+
+    function normalizeTextForApp(value) {
+      return String(value || "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    window.onload = async function() {
+      if (currentProfessorName && currentPin) {
+        document.getElementById("welcomeText").textContent = "Sveiki, " + currentProfessorName + "!";
+
+        if (selectedTower) {
+          document.getElementById("selectedTowerText").textContent = "Izvēlētais tornis: " + selectedTower;
+        }
+
+        goToPage("menuPage");
+
+        if (!allStudents || allStudents.length === 0) {
+          try {
+            await loadAllStudents();
+          } catch (error) {
+            console.error(error);
+          }
+        }
+      }
+    };
+
+      window.login = login;
+  window.logout = logout;
+  window.openPointsPage = openPointsPage;
+  window.chooseTower = chooseTower;
+  window.openIndividualPointForm = openIndividualPointForm;
+  window.openTowerPointForm = openTowerPointForm;
+  window.saveIndividualPoint = saveIndividualPoint;
+  window.saveTowerPoint = saveTowerPoint;
+  window.goToPage = goToPage;
+  window.openSituationRegister = openSituationRegister;
+  window.chooseSituationType = chooseSituationType;
+  window.chooseSituationTower = chooseSituationTower;
+  window.syncIndividualStudentSelection = syncIndividualStudentSelection;
+  window.syncSituationStudentSelection = syncSituationStudentSelection;
+  window.saveSituation = saveSituation;
+  </script>
+</body>
+</html>
