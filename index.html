@@ -655,29 +655,45 @@
       goToPage("situationTowerPage");
     }
 
-
     function chooseSituationTower(towerName) {
       selectedSituationTower = towerName;
-
+    
       document.getElementById("situationFormTitle").textContent = currentSituationType;
       document.getElementById("situationTowerText").textContent = "Tornis: " + selectedSituationTower;
-
-      document.getElementById("situationStudentSearch").value = "";
-      document.getElementById("situationStudentSelect").value = "";
-      document.getElementById("situationStudentDropdown").classList.add("hidden");
-      clearMessage("situationMessage");
-
-      const studentsInTower = getStudentsForTower(selectedSituationTower, "");
-      fillStudentSelect("situationStudentSelect", studentsInTower);
-
-      if (studentsInTower.length === 0) {
-        showMessage("situationMessage", "Šajā tornī nav audzēkņu.", "info");
+    
+      const situationStudentSearch = document.getElementById("situationStudentSearch");
+      const situationStudentSelect = document.getElementById("situationStudentSelect");
+      const situationStudentOptions = document.getElementById("situationStudentOptions");
+      const situationStudentDropdown = document.getElementById("situationStudentDropdown");
+    
+      if (situationStudentSearch) {
+        situationStudentSearch.value = "";
       }
-
+    
+      if (situationStudentSelect) {
+        situationStudentSelect.value = "";
+      }
+    
+      if (situationStudentOptions) {
+        const studentsInTower = getStudentsForTower(selectedSituationTower, "");
+        fillStudentDatalist("situationStudentOptions", studentsInTower);
+    
+        if (studentsInTower.length === 0) {
+          showMessage("situationMessage", "Šajā tornī nav audzēkņu.", "info");
+        }
+      }
+    
+      if (situationStudentDropdown) {
+        situationStudentDropdown.classList.add("hidden");
+        situationStudentDropdown.innerHTML = "";
+      }
+    
+      document.getElementById("whatHappened").value = "";
+      document.getElementById("whatIDid").value = "";
+      clearMessage("situationMessage");
+    
       goToPage("situationFormPage");
     }
-
-
     function filterSituationStudentDropdown() {
       const searchTerm = document.getElementById("situationStudentSearch").value;
       const studentsInTower = getStudentsForTower(selectedSituationTower, searchTerm);
