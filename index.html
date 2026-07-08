@@ -375,18 +375,23 @@
       <div id="situationTowerText" class="selected-tower"></div>
 
 
-      <label for="situationStudentSearch">Meklēt audzēkni</label>
-      <input
-        type="text"
-        id="situationStudentSearch"
-        placeholder="Sāc rakstīt vārdu vai uzvārdu..."
-        oninput="filterSituationStudentDropdown()"
-      />
-      
-      <label for="situationStudentSelect">Izvēlies audzēkni</label>
-      <select id="situationStudentSelect">
-        <option value="">Vispirms izvēlies torni</option>
-      </select>
+      <label for="situationStudentSearch">Izvēlies audzēkni</label>
+
+      <div class="search-combo">
+        <input
+          type="text"
+          id="situationStudentSearch"
+          placeholder="Sāc rakstīt vārdu vai uzvārdu..."
+          autocomplete="off"
+          oninput="renderSituationStudentOptions()"
+          onclick="renderSituationStudentOptions()"
+        />
+
+        <div id="situationStudentDropdown" class="search-dropdown hidden"></div>
+      </div>
+
+      <input type="hidden" id="situationStudentSelect" />
+
       <label for="whatHappened">Kas notika?</label>
       <textarea id="whatHappened" maxlength="500" placeholder="Īsi apraksti situāciju"></textarea>
 
@@ -592,37 +597,22 @@
 
 
     function openIndividualPointForm() {
+      document.getElementById("individualTowerText").textContent = "Tornis: " + selectedTower;
       document.getElementById("studentSearch").value = "";
       document.getElementById("studentSelect").value = "";
+      document.getElementById("individualPoints").value = 0;
+      document.getElementById("individualReason").value = "";
       document.getElementById("individualStudentDropdown").classList.add("hidden");
+      document.getElementById("individualStudentDropdown").innerHTML = "";
       clearMessage("individualMessage");
 
       const studentsInTower = getStudentsForTower(selectedTower, "");
-      fillStudentSelect("studentSelect", studentsInTower);
 
       if (studentsInTower.length === 0) {
         showMessage("individualMessage", "Šajā tornī nav aktīvu audzēkņu.", "info");
       }
 
       goToPage("individualPointPage");
-    }
-
-
-    function filterIndividualStudentDropdown() {
-      const searchTerm = document.getElementById("studentSearch").value;
-      const studentsInTower = getStudentsForTower(selectedTower, searchTerm);
-      fillStudentSelect("studentSelect", studentsInTower);
-
-      if (searchTerm && studentsInTower.length === 0) {
-        showMessage("individualMessage", "Nav atrasts neviens audzēknis ar šādu vārdu.", "info");
-      } else {
-        clearMessage("individualMessage");
-      }
-    }
-
-
-    function syncIndividualStudentSelection() {
-      filterIndividualStudentDropdown();
     }
 
 
@@ -653,61 +643,25 @@
 
     function chooseSituationTower(towerName) {
       selectedSituationTower = towerName;
-    
+
       document.getElementById("situationFormTitle").textContent = currentSituationType;
       document.getElementById("situationTowerText").textContent = "Tornis: " + selectedSituationTower;
-    
+
       document.getElementById("situationStudentSearch").value = "";
+      document.getElementById("situationStudentSelect").value = "";
+      document.getElementById("situationStudentDropdown").classList.add("hidden");
+      document.getElementById("situationStudentDropdown").innerHTML = "";
       document.getElementById("whatHappened").value = "";
       document.getElementById("whatIDid").value = "";
       clearMessage("situationMessage");
-    
-      fillSituationStudentDropdown(selectedSituationTower, "");
-    
-      goToPage("situationFormPage");
-    }
-    function filterSituationStudentDropdown() {
-      const searchTerm = document.getElementById("situationStudentSearch").value;
-      fillSituationStudentDropdown(selectedSituationTower, searchTerm);
-    }
 
-    
-    function fillSituationStudentDropdown(tower, searchTerm) {
-      const select = document.getElementById("situationStudentSelect");
-      const studentsInTower = getStudentsForTower(tower, searchTerm);
-    
-      select.innerHTML = "";
-    
+      const studentsInTower = getStudentsForTower(selectedSituationTower, "");
+
       if (studentsInTower.length === 0) {
-        const option = document.createElement("option");
-        option.value = "";
-        option.textContent = "Nav atrasts neviens audzēknis";
-        select.appendChild(option);
-        return;
+        showMessage("situationMessage", "Šajā tornī nav audzēkņu.", "info");
       }
-    
-      const defaultOption = document.createElement("option");
-      defaultOption.value = "";
-      defaultOption.textContent = "Izvēlies audzēkni";
-      select.appendChild(defaultOption);
-    
-      studentsInTower.forEach(student => {
-        const option = document.createElement("option");
-        option.value = student.studentId;
-        option.textContent = student.displayName;
-        select.appendChild(option);
-      });
-    }
-    function filterSituationStudentDropdown() {
-      const searchTerm = document.getElementById("situationStudentSearch").value;
-      const studentsInTower = getStudentsForTower(selectedSituationTower, searchTerm);
-      fillStudentSelect("situationStudentSelect", studentsInTower);
 
-      if (searchTerm && studentsInTower.length === 0) {
-        showMessage("situationMessage", "Nav atrasts neviens audzēknis ar šādu vārdu.", "info");
-      } else {
-        clearMessage("situationMessage");
-      }
+      goToPage("situationFormPage");
     }
 
 
@@ -939,24 +893,6 @@
     }
 
 
-    function fillStudentSelect(selectId, students) {
-      const select = document.getElementById(selectId);
-      select.innerHTML = "";
-
-      const placeholder = document.createElement("option");
-      placeholder.value = "";
-      placeholder.textContent = students.length === 0
-        ? "Nav atrasts neviens audzēknis"
-        : "Izvēlies audzēkni";
-      select.appendChild(placeholder);
-
-      students.forEach(student => {
-        const option = document.createElement("option");
-        option.value = student.studentId;
-        option.textContent = student.displayName;
-        select.appendChild(option);
-      });
-    }
     let currentIndividualStudentOptions = [];
     let currentSituationStudentOptions = [];
     
@@ -1049,8 +985,7 @@
         }
       }
     };
-
-      window.login = login;
+  window.login = login;
   window.logout = logout;
   window.openPointsPage = openPointsPage;
   window.chooseTower = chooseTower;
@@ -1064,12 +999,9 @@
   window.openSituationRegister = openSituationRegister;
   window.chooseSituationType = chooseSituationType;
   window.chooseSituationTower = chooseSituationTower;
-  window.filterIndividualStudentDropdown = filterIndividualStudentDropdown;
-  window.filterSituationStudentDropdown = filterSituationStudentDropdown;
-  window.syncIndividualStudentSelection = syncIndividualStudentSelection;
-  window.syncSituationStudentSelection = syncSituationStudentSelection;
+  window.renderIndividualStudentOptions = renderIndividualStudentOptions;
+  window.renderSituationStudentOptions = renderSituationStudentOptions;
   window.saveSituation = saveSituation;
-  window.filterSituationStudentDropdown = filterSituationStudentDropdown;
   </script>
 </body>
 </html>
