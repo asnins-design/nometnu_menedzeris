@@ -375,22 +375,18 @@
       <div id="situationTowerText" class="selected-tower"></div>
 
 
-      <label for="studentSearch">Izvēlies audzēkni</label>
+      <label for="situationStudentSearch">Meklēt audzēkni</label>
+      <input
+        type="text"
+        id="situationStudentSearch"
+        placeholder="Sāc rakstīt vārdu vai uzvārdu..."
+        oninput="filterSituationStudentDropdown()"
+      />
       
-      <div class="search-combo">
-        <input
-          type="text"
-          id="studentSearch"
-          placeholder="Sāc rakstīt vārdu vai uzvārdu..."
-          autocomplete="off"
-          oninput="renderIndividualStudentOptions()"
-          onclick="renderIndividualStudentOptions()"
-        />
-      
-        <div id="individualStudentDropdown" class="search-dropdown hidden"></div>
-      </div>
-      
-      <input type="hidden" id="studentSelect" />
+      <label for="situationStudentSelect">Izvēlies audzēkni</label>
+      <select id="situationStudentSelect">
+        <option value="">Vispirms izvēlies torni</option>
+      </select>
       <label for="whatHappened">Kas notika?</label>
       <textarea id="whatHappened" maxlength="500" placeholder="Īsi apraksti situāciju"></textarea>
 
@@ -661,38 +657,46 @@
       document.getElementById("situationFormTitle").textContent = currentSituationType;
       document.getElementById("situationTowerText").textContent = "Tornis: " + selectedSituationTower;
     
-      const situationStudentSearch = document.getElementById("situationStudentSearch");
-      const situationStudentSelect = document.getElementById("situationStudentSelect");
-      const situationStudentOptions = document.getElementById("situationStudentOptions");
-      const situationStudentDropdown = document.getElementById("situationStudentDropdown");
-    
-      if (situationStudentSearch) {
-        situationStudentSearch.value = "";
-      }
-    
-      if (situationStudentSelect) {
-        situationStudentSelect.value = "";
-      }
-    
-      if (situationStudentOptions) {
-        const studentsInTower = getStudentsForTower(selectedSituationTower, "");
-        fillStudentDatalist("situationStudentOptions", studentsInTower);
-    
-        if (studentsInTower.length === 0) {
-          showMessage("situationMessage", "Šajā tornī nav audzēkņu.", "info");
-        }
-      }
-    
-      if (situationStudentDropdown) {
-        situationStudentDropdown.classList.add("hidden");
-        situationStudentDropdown.innerHTML = "";
-      }
-    
+      document.getElementById("situationStudentSearch").value = "";
       document.getElementById("whatHappened").value = "";
       document.getElementById("whatIDid").value = "";
       clearMessage("situationMessage");
     
+      fillSituationStudentDropdown(selectedSituationTower, "");
+    
       goToPage("situationFormPage");
+    }
+    function filterSituationStudentDropdown() {
+      const searchTerm = document.getElementById("situationStudentSearch").value;
+      fillSituationStudentDropdown(selectedSituationTower, searchTerm);
+    }
+
+    
+    function fillSituationStudentDropdown(tower, searchTerm) {
+      const select = document.getElementById("situationStudentSelect");
+      const studentsInTower = getStudentsForTower(tower, searchTerm);
+    
+      select.innerHTML = "";
+    
+      if (studentsInTower.length === 0) {
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = "Nav atrasts neviens audzēknis";
+        select.appendChild(option);
+        return;
+      }
+    
+      const defaultOption = document.createElement("option");
+      defaultOption.value = "";
+      defaultOption.textContent = "Izvēlies audzēkni";
+      select.appendChild(defaultOption);
+    
+      studentsInTower.forEach(student => {
+        const option = document.createElement("option");
+        option.value = student.studentId;
+        option.textContent = student.displayName;
+        select.appendChild(option);
+      });
     }
     function filterSituationStudentDropdown() {
       const searchTerm = document.getElementById("situationStudentSearch").value;
@@ -704,11 +708,6 @@
       } else {
         clearMessage("situationMessage");
       }
-    }
-
-
-    function syncSituationStudentSelection() {
-      filterSituationStudentDropdown();
     }
 
 
@@ -1070,6 +1069,7 @@
   window.syncIndividualStudentSelection = syncIndividualStudentSelection;
   window.syncSituationStudentSelection = syncSituationStudentSelection;
   window.saveSituation = saveSituation;
+  window.filterSituationStudentDropdown = filterSituationStudentDropdown;
   </script>
 </body>
 </html>
