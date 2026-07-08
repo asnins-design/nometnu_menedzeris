@@ -221,6 +221,19 @@
     .situation-entry p {
       margin: 6px 0;
     }
+    .profile-shortcut-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 15px;
+      margin-bottom: 15px;
+    }
+
+    @media (max-width: 500px) {
+      .profile-shortcut-grid {
+        grid-template-columns: 1fr;
+      }
+    }
     @media (max-width: 500px) {
       .tower-grid {
         grid-template-columns: 1fr;
@@ -483,7 +496,15 @@
   
     <div id="studentProfileResult" class="hidden">
       <h2 id="studentProfileName"></h2>
-  
+      <div class="profile-shortcut-grid">
+        <button onclick="reportSituationFromProfile('Nedarbs')">
+          Reģistrēt nedarbu
+        </button>
+
+        <button onclick="reportSituationFromProfile('Veselība')">
+          Reģistrēt veselību
+        </button>
+      </div>
     <div class="profile-box">
       <h3>Komentāri par bērnu</h3>
     
@@ -540,7 +561,7 @@
     let currentSituationType = "";
     let selectedSituationTower = "";
     let selectedProfileTower = "";
-    
+    let currentProfileStudent = null;
     let allStudents = [];
     
     try {
@@ -593,7 +614,37 @@
     
       return allStudents;
     }
-
+    function reportSituationFromProfile(type) {
+      if (!currentProfileStudent || !currentProfileStudent.studentId) {
+        showMessage("studentProfileMessage", "Vispirms izvēlies audzēkni.", "error");
+        return;
+      }
+    
+      currentSituationType = type;
+      selectedSituationTower = currentProfileStudent.tower;
+    
+      document.getElementById("situationFormTitle").textContent = currentSituationType;
+      document.getElementById("situationTowerText").textContent = "Tornis: " + selectedSituationTower;
+    
+      document.getElementById("situationStudentSearch").value = currentProfileStudent.displayName;
+      document.getElementById("situationStudentSelect").value = currentProfileStudent.studentId;
+    
+      const dropdown = document.getElementById("situationStudentDropdown");
+      if (dropdown) {
+        dropdown.classList.add("hidden");
+        dropdown.innerHTML = "";
+      }
+    
+      document.getElementById("whatHappened").value = "";
+      document.getElementById("whatIDid").value = "";
+      clearMessage("situationMessage");
+    
+      goToPage("situationFormPage");
+    
+      if (typeof loadPreviousSituationEntriesForSelectedStudent === "function") {
+        loadPreviousSituationEntriesForSelectedStudent();
+      }
+    }
     function showMessage(elementId, text, type) {
       const element = document.getElementById(elementId);
       element.textContent = text;
@@ -846,7 +897,7 @@
     
     function renderStudentProfile(response) {
       const student = response.student;
-    
+      currentProfileStudent = student;
       document.getElementById("studentProfileResult").classList.remove("hidden");
       document.getElementById("studentProfileName").textContent = student.displayName + " — " + student.tower;
     
@@ -1420,6 +1471,7 @@ function renderPreviousSituationEntries(entries) {
   window.saveStudentComments = saveStudentComments;
   window.openStudentCommentsEditor = openStudentCommentsEditor;
   window.cancelStudentCommentsEdit = cancelStudentCommentsEdit;
+  window.reportSituationFromProfile = reportSituationFromProfile;
   </script>
 </body>
 </html>
