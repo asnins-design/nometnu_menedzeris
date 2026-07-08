@@ -228,7 +228,15 @@
       margin-top: 15px;
       margin-bottom: 15px;
     }
-
+    .student-photo {
+      display: block;
+      width: 160px;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 16px;
+      margin: 0 auto 15px auto;
+      border: 3px solid #57cc99;
+    }
     @media (max-width: 500px) {
       .profile-shortcut-grid {
         grid-template-columns: 1fr;
@@ -495,6 +503,7 @@
     <div id="studentProfileMessage" class="message"></div>
   
     <div id="studentProfileResult" class="hidden">
+    <img id="studentProfilePhoto" class="student-photo hidden" alt="Audzēkņa foto" />
       <h2 id="studentProfileName"></h2>
       <div class="profile-shortcut-grid">
         <button onclick="reportSituationFromProfile('Nedarbs')">
@@ -911,6 +920,15 @@
     
       renderSituationEntries("studentHealthEntries", response.healthEntries || []);
       renderSituationEntries("studentMischiefEntries", response.mischiefEntries || []);
+      const photo = document.getElementById("studentProfilePhoto");
+
+      if (student.photoUrl) {
+        photo.src = student.photoUrl;
+        photo.classList.remove("hidden");
+      } else {
+        photo.src = "";
+        photo.classList.add("hidden");
+      }
     }
     function openStudentCommentsEditor() {
       document.getElementById("studentCommentsEditBox").classList.remove("hidden");
