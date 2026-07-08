@@ -160,7 +160,37 @@
       font-weight: bold;
       margin-bottom: 20px;
     }
-
+    .search-combo {
+      position: relative;
+    }
+    
+    .search-dropdown {
+      position: absolute;
+      width: 100%;
+      max-height: 220px;
+      overflow-y: auto;
+      background: white;
+      border: 1px solid #bbb;
+      border-radius: 8px;
+      margin-top: 4px;
+      z-index: 999;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    }
+    
+    .search-option {
+      padding: 12px;
+      cursor: pointer;
+      color: #301466;
+    }
+    
+    .search-option:hover {
+      background: #f0ebff;
+    }
+    
+    .search-option-empty {
+      padding: 12px;
+      color: #777;
+    }
     @media (max-width: 500px) {
       .tower-grid {
         grid-template-columns: 1fr;
@@ -239,19 +269,23 @@
       <h2>Individuālais punkts</h2>
 
       <div id="individualTowerText" class="selected-tower"></div>
-
-      <label for="studentSearch">Meklēt audzēkni</label>
-      <input
-        type="text"
-        id="studentSearch"
-        placeholder="Sāc rakstīt vārdu vai uzvārdu..."
-        oninput="filterIndividualStudentDropdown()"
-      />
-
-      <label for="studentSelect">Izvēlies audzēkni</label>
-      <select id="studentSelect">
-        <option value="">Izvēlies audzēkni</option>
-      </select>
+      
+      <label for="studentSearch">Izvēlies audzēkni</label>
+      
+      <div class="search-combo">
+        <input
+          type="text"
+          id="studentSearch"
+          placeholder="Sāc rakstīt vārdu vai uzvārdu..."
+          autocomplete="off"
+          oninput="renderIndividualStudentOptions()"
+          onclick="renderIndividualStudentOptions()"
+        />
+      
+        <div id="individualStudentDropdown" class="search-dropdown hidden"></div>
+      </div>
+      
+      <input type="hidden" id="studentSelect" />
 
       <label for="individualPoints">Punktu skaits</label>
       <input type="number" id="individualPoints" value="0" step="1" />
@@ -340,19 +374,23 @@
 
       <div id="situationTowerText" class="selected-tower"></div>
 
-      <label for="situationStudentSearch">Meklēt audzēkni</label>
-      <input
-        type="text"
-        id="situationStudentSearch"
-        placeholder="Sāc rakstīt vārdu vai uzvārdu..."
-        oninput="filterSituationStudentDropdown()"
-      />
 
-      <label for="situationStudentSelect">Izvēlies audzēkni</label>
-      <select id="situationStudentSelect">
-        <option value="">Izvēlies audzēkni</option>
-      </select>
-
+      <label for="studentSearch">Izvēlies audzēkni</label>
+      
+      <div class="search-combo">
+        <input
+          type="text"
+          id="studentSearch"
+          placeholder="Sāc rakstīt vārdu vai uzvārdu..."
+          autocomplete="off"
+          oninput="renderIndividualStudentOptions()"
+          onclick="renderIndividualStudentOptions()"
+        />
+      
+        <div id="individualStudentDropdown" class="search-dropdown hidden"></div>
+      </div>
+      
+      <input type="hidden" id="studentSelect" />
       <label for="whatHappened">Kas notika?</label>
       <textarea id="whatHappened" maxlength="500" placeholder="Īsi apraksti situāciju"></textarea>
 
@@ -558,10 +596,9 @@
 
 
     function openIndividualPointForm() {
-      document.getElementById("individualTowerText").textContent = "Tornis: " + selectedTower;
       document.getElementById("studentSearch").value = "";
-      document.getElementById("individualPoints").value = 0;
-      document.getElementById("individualReason").value = "";
+      document.getElementById("studentSelect").value = "";
+      document.getElementById("individualStudentDropdown").classList.add("hidden");
       clearMessage("individualMessage");
 
       const studentsInTower = getStudentsForTower(selectedTower, "");
@@ -626,8 +663,8 @@
       document.getElementById("situationTowerText").textContent = "Tornis: " + selectedSituationTower;
 
       document.getElementById("situationStudentSearch").value = "";
-      document.getElementById("whatHappened").value = "";
-      document.getElementById("whatIDid").value = "";
+      document.getElementById("situationStudentSelect").value = "";
+      document.getElementById("situationStudentDropdown").classList.add("hidden");
       clearMessage("situationMessage");
 
       const studentsInTower = getStudentsForTower(selectedSituationTower, "");
@@ -905,8 +942,71 @@
         select.appendChild(option);
       });
     }
-
-
+    let currentIndividualStudentOptions = [];
+    let currentSituationStudentOptions = [];
+    
+    function renderIndividualStudentOptions() {
+      const searchTerm = document.getElementById("studentSearch").value;
+      const dropdown = document.getElementById("individualStudentDropdown");
+    
+      currentIndividualStudentOptions = getStudentsForTower(selectedTower, searchTerm);
+    
+      dropdown.innerHTML = "";
+    
+      if (currentIndividualStudentOptions.length === 0) {
+        dropdown.innerHTML = "<div class='search-option-empty'>Nav atrasts neviens audzēknis</div>";
+        dropdown.classList.remove("hidden");
+        document.getElementById("studentSelect").value = "";
+        return;
+      }
+    
+      currentIndividualStudentOptions.forEach(student => {
+        const option = document.createElement("div");
+        option.className = "search-option";
+        option.textContent = student.displayName;
+    
+        option.onclick = function() {
+          document.getElementById("studentSearch").value = student.displayName;
+          document.getElementById("studentSelect").value = student.studentId;
+          dropdown.classList.add("hidden");
+        };
+    
+        dropdown.appendChild(option);
+      });
+    
+      dropdown.classList.remove("hidden");
+    }
+    function renderSituationStudentOptions() {
+      const searchTerm = document.getElementById("situationStudentSearch").value;
+      const dropdown = document.getElementById("situationStudentDropdown");
+    
+      currentSituationStudentOptions = getStudentsForTower(selectedSituationTower, searchTerm);
+    
+      dropdown.innerHTML = "";
+    
+      if (currentSituationStudentOptions.length === 0) {
+        dropdown.innerHTML = "<div class='search-option-empty'>Nav atrasts neviens audzēknis</div>";
+        dropdown.classList.remove("hidden");
+        document.getElementById("situationStudentSelect").value = "";
+        return;
+      }
+    
+      currentSituationStudentOptions.forEach(student => {
+        const option = document.createElement("div");
+        option.className = "search-option";
+        option.textContent = student.displayName;
+    
+        option.onclick = function() {
+          document.getElementById("situationStudentSearch").value = student.displayName;
+          document.getElementById("situationStudentSelect").value = student.studentId;
+          dropdown.classList.add("hidden");
+        };
+    
+        dropdown.appendChild(option);
+      });
+    
+      dropdown.classList.remove("hidden");
+    }
     function normalizeTextForApp(value) {
       return String(value || "")
         .trim()
