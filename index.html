@@ -421,7 +421,10 @@
       </div>
 
       <input type="hidden" id="situationStudentSelect" />
-
+      <div id="previousSituationBox" class="profile-box hidden">
+        <h3 id="previousSituationTitle">Iepriekš reģistrēts</h3>
+        <div id="previousSituationEntries"></div>
+      </div>
       <label for="whatHappened">Kas notika?</label>
       <textarea id="whatHappened" maxlength="500" placeholder="Īsi apraksti situāciju"></textarea>
 
@@ -484,15 +487,27 @@
     <div class="profile-box">
       <h3>Komentāri par bērnu</h3>
     
-      <textarea
-        id="studentProfileComments"
-        maxlength="1000"
-        placeholder="Piemēram: alerģijas, medikamenti, svarīga informācija..."
-      ></textarea>
+      <p id="studentProfileCommentsView"></p>
     
-      <button id="saveStudentCommentsButton" onclick="saveStudentComments()">
-        Saglabāt komentārus
+      <button id="editStudentCommentsButton" onclick="openStudentCommentsEditor()">
+        Rediģēt komentārus
       </button>
+    
+      <div id="studentCommentsEditBox" class="hidden">
+        <textarea
+          id="studentProfileComments"
+          maxlength="1000"
+          placeholder="Piemēram: alerģijas, medikamenti, svarīga informācija..."
+        ></textarea>
+    
+        <button id="saveStudentCommentsButton" onclick="saveStudentComments()">
+          Saglabāt komentārus
+        </button>
+    
+        <button class="secondary-button" onclick="cancelStudentCommentsEdit()">
+          Atcelt
+        </button>
+      </div>
     </div>
   
       <div class="profile-box">
@@ -816,7 +831,11 @@
         }
     
         showMessage("studentProfileMessage", "Komentāri saglabāti.", "success");
-    
+        document.getElementById("studentProfileCommentsView").textContent =
+          comments || "Nav pievienotu komentāru par bērnu.";
+        
+        document.getElementById("studentCommentsEditBox").classList.add("hidden");
+        document.getElementById("editStudentCommentsButton").classList.remove("hidden");
       } catch (error) {
         showMessage("studentProfileMessage", error.message, "error");
       } finally {
@@ -831,12 +850,32 @@
       document.getElementById("studentProfileResult").classList.remove("hidden");
       document.getElementById("studentProfileName").textContent = student.displayName + " — " + student.tower;
     
+      document.getElementById("studentProfileCommentsView").textContent =
+        student.comments || "Nav pievienotu komentāru par bērnu.";
+      
       document.getElementById("studentProfileComments").value = student.comments || "";
+      
+      document.getElementById("studentCommentsEditBox").classList.add("hidden");
+      document.getElementById("editStudentCommentsButton").classList.remove("hidden");
     
       renderSituationEntries("studentHealthEntries", response.healthEntries || []);
       renderSituationEntries("studentMischiefEntries", response.mischiefEntries || []);
     }
+    function openStudentCommentsEditor() {
+      document.getElementById("studentCommentsEditBox").classList.remove("hidden");
+      document.getElementById("editStudentCommentsButton").classList.add("hidden");
+    }
     
+    
+    function cancelStudentCommentsEdit() {
+      const currentText = document.getElementById("studentProfileCommentsView").textContent;
+    
+      document.getElementById("studentProfileComments").value =
+        currentText === "Nav pievienotu komentāru par bērnu." ? "" : currentText;
+    
+      document.getElementById("studentCommentsEditBox").classList.add("hidden");
+      document.getElementById("editStudentCommentsButton").classList.remove("hidden");
+    }
     
     function renderSituationEntries(containerId, entries) {
       const container = document.getElementById(containerId);
@@ -927,8 +966,10 @@
       document.getElementById("situationStudentSelect").value = "";
       document.getElementById("situationStudentDropdown").classList.add("hidden");
       document.getElementById("situationStudentDropdown").innerHTML = "";
+      
       document.getElementById("whatHappened").value = "";
       document.getElementById("whatIDid").value = "";
+      hidePreviousSituationEntries();
       clearMessage("situationMessage");
 
       const studentsInTower = getStudentsForTower(selectedSituationTower, "");
@@ -1206,7 +1247,8 @@
     function renderSituationStudentOptions() {
       const searchTerm = document.getElementById("situationStudentSearch").value;
       const dropdown = document.getElementById("situationStudentDropdown");
-    
+      document.getElementById("situationStudentSelect").value = "";
+      hidePreviousSituationEntries();
       currentSituationStudentOptions = getStudentsForTower(selectedSituationTower, searchTerm);
     
       dropdown.innerHTML = "";
@@ -1227,6 +1269,8 @@
           document.getElementById("situationStudentSearch").value = student.displayName;
           document.getElementById("situationStudentSelect").value = student.studentId;
           dropdown.classList.add("hidden");
+        
+          loadPreviousSituationEntriesForSelectedStudent();
         };
     
         dropdown.appendChild(option);
@@ -1241,7 +1285,98 @@
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "");
     }
+    function hidePreviousSituationEntries() {
+  const box = document.getElementById("previousSituationBox");
+  const entries = document.getElementById("previousSituationEntries");
 
+  if (box) {
+    box.classList.add("hidden");
+  }
+
+  if (entries) {
+    entries.innerHTML = "";
+  }
+}
+
+
+async function loadPreviousSituationEntriesForSelectedStudent() {
+  const studentId = document.getElementById("situationStudentSelect").value;
+
+  if (!studentId) {
+    hidePreviousSituationEntries();
+    return;
+  }
+
+  const box = document.getElementById("previousSituationBox");
+  const title = document.getElementById("previousSituationTitle");
+  const entriesContainer = document.getElementById("previousSituationEntries");
+
+  box.classList.remove("hidden");
+
+  if (currentSituationType === "Veselība") {
+    title.textContent = "Iepriekš reģistrēta veselība";
+  } else {
+    title.textContent = "Iepriekš reģistrēti nedarbi";
+  }
+
+  entriesContainer.innerHTML = "<p>Ielādē iepriekšējos ierakstus...</p>";
+
+  try {
+    const response = await apiCall({
+      action: "getStudentProfile",
+      professorName: currentProfessorName,
+      pin: currentPin,
+      studentId: studentId
+    });
+
+    if (!response.success) {
+      entriesContainer.innerHTML = "<p>Neizdevās ielādēt iepriekšējos ierakstus.</p>";
+      return;
+    }
+
+    const entries = currentSituationType === "Veselība"
+      ? response.healthEntries || []
+      : response.mischiefEntries || [];
+
+    renderPreviousSituationEntries(entries);
+
+  } catch (error) {
+    entriesContainer.innerHTML = "<p>" + escapeHtml(error.message) + "</p>";
+  }
+}
+
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+function renderPreviousSituationEntries(entries) {
+  const entriesContainer = document.getElementById("previousSituationEntries");
+  entriesContainer.innerHTML = "";
+
+  if (!entries || entries.length === 0) {
+    entriesContainer.innerHTML = "<p>Šim audzēknim šāda tipa ierakstu vēl nav.</p>";
+    return;
+  }
+
+  entries.forEach(entry => {
+    const div = document.createElement("div");
+    div.className = "situation-entry";
+
+    div.innerHTML = `
+      <div class="situation-entry-meta">
+        ${escapeHtml(entry.timestamp)} · ${escapeHtml(entry.professor)}
+      </div>
+      <p><strong>Kas notika?</strong><br>${escapeHtml(entry.whatHappened)}</p>
+      <p><strong>Ko darīju lietas labā?</strong><br>${escapeHtml(entry.whatIDid)}</p>
+    `;
+
+    entriesContainer.appendChild(div);
+  });
+}
     window.onload = async function() {
       if (currentProfessorName && currentPin) {
         document.getElementById("welcomeText").textContent = "Sveiki, " + currentProfessorName + "!";
@@ -1283,6 +1418,8 @@
   window.renderProfileStudentOptions = renderProfileStudentOptions;
   window.loadStudentProfile = loadStudentProfile;
   window.saveStudentComments = saveStudentComments;
+  window.openStudentCommentsEditor = openStudentCommentsEditor;
+  window.cancelStudentCommentsEdit = cancelStudentCommentsEdit;
   </script>
 </body>
 </html>
