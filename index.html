@@ -481,10 +481,19 @@
     <div id="studentProfileResult" class="hidden">
       <h2 id="studentProfileName"></h2>
   
-      <div class="profile-box">
-        <h3>Komentāri par bērnu</h3>
-        <p id="studentProfileComments"></p>
-      </div>
+    <div class="profile-box">
+      <h3>Komentāri par bērnu</h3>
+    
+      <textarea
+        id="studentProfileComments"
+        maxlength="1000"
+        placeholder="Piemēram: alerģijas, medikamenti, svarīga informācija..."
+      ></textarea>
+    
+      <button id="saveStudentCommentsButton" onclick="saveStudentComments()">
+        Saglabāt komentārus
+      </button>
+    </div>
   
       <div class="profile-box">
         <h3>Veselība</h3>
@@ -777,7 +786,44 @@
         showMessage("studentProfileMessage", error.message, "error");
       }
     }
+    async function saveStudentComments() {
+      const studentId = document.getElementById("profileStudentSelect").value;
+      const comments = document.getElementById("studentProfileComments").value.trim();
     
+      clearMessage("studentProfileMessage");
+    
+      if (!studentId) {
+        showMessage("studentProfileMessage", "Lūdzu, izvēlies audzēkni no saraksta.", "error");
+        return;
+      }
+    
+      const button = document.getElementById("saveStudentCommentsButton");
+      button.disabled = true;
+      button.textContent = "Saglabā...";
+    
+      try {
+        const response = await apiCall({
+          action: "updateStudentComments",
+          professorName: currentProfessorName,
+          pin: currentPin,
+          studentId: studentId,
+          comments: comments
+        });
+    
+        if (!response.success) {
+          showMessage("studentProfileMessage", response.error || "Neizdevās saglabāt komentārus.", "error");
+          return;
+        }
+    
+        showMessage("studentProfileMessage", "Komentāri saglabāti.", "success");
+    
+      } catch (error) {
+        showMessage("studentProfileMessage", error.message, "error");
+      } finally {
+        button.disabled = false;
+        button.textContent = "Saglabāt komentārus";
+      }
+    }
     
     function renderStudentProfile(response) {
       const student = response.student;
@@ -785,8 +831,7 @@
       document.getElementById("studentProfileResult").classList.remove("hidden");
       document.getElementById("studentProfileName").textContent = student.displayName + " — " + student.tower;
     
-      document.getElementById("studentProfileComments").textContent =
-        student.comments || "Nav pievienotu komentāru par bērnu.";
+      document.getElementById("studentProfileComments").value = student.comments || "";
     
       renderSituationEntries("studentHealthEntries", response.healthEntries || []);
       renderSituationEntries("studentMischiefEntries", response.mischiefEntries || []);
@@ -1237,6 +1282,7 @@
   window.chooseProfileTower = chooseProfileTower;
   window.renderProfileStudentOptions = renderProfileStudentOptions;
   window.loadStudentProfile = loadStudentProfile;
+  window.saveStudentComments = saveStudentComments;
   </script>
 </body>
 </html>
