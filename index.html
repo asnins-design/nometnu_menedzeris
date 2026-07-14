@@ -101,7 +101,66 @@
       background: #f1c40f;
       color: #2b2118;
     }
-
+    .flashcard-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-top: 20px;
+    }
+    
+    .flashcard {
+      background: #f7f3ff;
+      border: 2px solid #57cc99;
+      border-radius: 16px;
+      padding: 12px;
+      cursor: pointer;
+      text-align: center;
+      color: #301466;
+    }
+    
+    .flashcard:hover {
+      opacity: 0.92;
+    }
+    
+    .flashcard img {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      border-radius: 12px;
+      background: #ddd;
+    }
+    
+    .flashcard-name {
+      margin-top: 10px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    
+    .flashcard-name.hidden-name {
+      visibility: hidden;
+    }
+    
+    .flashcard-no-photo {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 12px;
+      background: #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #777;
+      font-weight: bold;
+    }
+    
+    @media (max-width: 500px) {
+      .flashcard-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    
+      .flashcard-name {
+        font-size: 15px;
+      }
+    }
     .puces {
       background: #2980b9;
     }
@@ -277,7 +336,7 @@
       <button onclick="openPointsPage()">PUNKTI</button>
       <button onclick="openSituationRegister()">Situāciju reģistrs</button>
       <button onclick="openStudentsPage()">Audzēkņi</button>
-
+      <button onclick="openFlashcardsPage()">Datubāze</button>
       <button class="secondary-button" onclick="logout()">Iziet</button>
     </section>
 
@@ -555,7 +614,32 @@
     <button class="secondary-button" onclick="goToPage('menuPage')">Iet uz sākumu</button>
   </section>
   </div>
+<!-- FLASHCARD TOWER CHOICE PAGE -->
+<section id="flashcardTowerPage" class="card hidden">
+  <h2>Atpazīsti audzēkņus — izvēlies torni</h2>
 
+  <div class="tower-grid">
+    <button class="tower-button laci" onclick="chooseFlashcardTower('Lāči')">Lāči</button>
+    <button class="tower-button lusi" onclick="chooseFlashcardTower('Lūši')">Lūši</button>
+    <button class="tower-button puces" onclick="chooseFlashcardTower('Pūces')">Pūces</button>
+    <button class="tower-button vaveres" onclick="chooseFlashcardTower('Vāveres')">Vāveres</button>
+  </div>
+
+  <button class="secondary-button" onclick="goToPage('menuPage')">Atpakaļ uz izvēlni</button>
+</section>
+
+
+<!-- FLASHCARDS PAGE -->
+<section id="flashcardsPage" class="card hidden">
+  <h2 id="flashcardsTitle">Atpazīsti audzēkņus</h2>
+
+  <div id="flashcardsMessage" class="message"></div>
+
+  <div id="flashcardGrid" class="flashcard-grid"></div>
+
+  <button class="secondary-button" onclick="goToPage('flashcardTowerPage')">Atpakaļ uz torņiem</button>
+  <button class="secondary-button" onclick="goToPage('menuPage')">Iet uz sākumu</button>
+</section>
 
   <script>
     /************************************
@@ -681,6 +765,8 @@
         "situationFormPage",
         "studentsTowerPage",
         "studentProfilePage"
+        "flashcardTowerPage",
+        "flashcardsPage"
       ];
 
       pages.forEach(id => {
@@ -1015,7 +1101,56 @@
       selectedSituationTower = "";
       goToPage("situationTypePage");
     }
+    function openFlashcardsPage() {
+  goToPage("flashcardTowerPage");
+}
 
+
+function chooseFlashcardTower(towerName) {
+  document.getElementById("flashcardsTitle").textContent =
+    "Atpazīsti audzēkņus — " + towerName;
+
+  renderFlashcards(towerName);
+  goToPage("flashcardsPage");
+}
+
+
+function renderFlashcards(towerName) {
+  const grid = document.getElementById("flashcardGrid");
+  const message = document.getElementById("flashcardsMessage");
+
+  grid.innerHTML = "";
+  message.textContent = "";
+  message.className = "message";
+
+  const studentsInTower = getStudentsForTower(towerName, "");
+
+  if (studentsInTower.length === 0) {
+    showMessage("flashcardsMessage", "Šajā tornī nav audzēkņu.", "info");
+    return;
+  }
+
+  studentsInTower.forEach(student => {
+    const card = document.createElement("div");
+    card.className = "flashcard";
+
+    const photoHtml = student.photoUrl
+      ? `<img src="${escapeHtml(student.photoUrl)}" alt="Audzēkņa foto">`
+      : `<div class="flashcard-no-photo">Nav foto</div>`;
+
+    card.innerHTML = `
+      ${photoHtml}
+      <div class="flashcard-name hidden-name">${escapeHtml(student.displayName)}</div>
+    `;
+
+    card.onclick = function() {
+      const name = card.querySelector(".flashcard-name");
+      name.classList.toggle("hidden-name");
+    };
+
+    grid.appendChild(card);
+  });
+}
 
     function chooseSituationType(type) {
       currentSituationType = type;
@@ -1490,6 +1625,8 @@ function renderPreviousSituationEntries(entries) {
   window.openStudentCommentsEditor = openStudentCommentsEditor;
   window.cancelStudentCommentsEdit = cancelStudentCommentsEdit;
   window.reportSituationFromProfile = reportSituationFromProfile;
+  window.openFlashcardsPage = openFlashcardsPage;
+  window.chooseFlashcardTower = chooseFlashcardTower;
   </script>
 </body>
 </html>
