@@ -817,8 +817,14 @@
 
         showMessage("loginMessage", "Ielādē audzēkņu sarakstu...", "info");
 
-        await loadAllStudents();
-
+        try {
+          await loadAllStudents();
+        } catch (studentError) {
+          console.error("Neizdevās ielādēt audzēkņus:", studentError);
+          allStudents = [];
+          sessionStorage.setItem("allStudents", JSON.stringify(allStudents));
+        }
+        
         document.getElementById("welcomeText").textContent = "Čau čau, tavs vārds ir " + currentProfessorName + "!";
         goToPage("menuPage");
 
