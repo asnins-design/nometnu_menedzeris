@@ -207,7 +207,46 @@
     .success {
       color: #1f7a35;
     }
-
+    .extra-students-box {
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 12px;
+      background: #f7f3ff;
+      color: #301466;
+    }
+    
+    .extra-students-box h3 {
+      margin-top: 0;
+      margin-bottom: 8px;
+    }
+    
+    .selected-student-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    
+    .student-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: white;
+      border: 1px solid #57cc99;
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-size: 14px;
+      color: #301466;
+    }
+    
+    .student-chip button {
+      width: auto;
+      margin: 0;
+      padding: 2px 7px;
+      font-size: 14px;
+      border-radius: 999px;
+      background: #c0392b;
+    }
     .info {
       color: #5b3b1f;
     }
@@ -395,7 +434,27 @@
       </div>
       
       <input type="hidden" id="studentSelect" />
-
+      <div class="extra-students-box">
+        <h3>Papildu audzēkņi</h3>
+        <p>Te vari pievienot citus audzēkņus no jebkura torņa, kuri saņems to pašu punktu ar to pašu aprakstu.</p>
+      
+        <label for="additionalStudentSearch">Pievienot vēl audzēkni</label>
+      
+        <div class="search-combo">
+          <input
+            type="text"
+            id="additionalStudentSearch"
+            placeholder="Meklē pēc vārda, uzvārda vai torņa..."
+            autocomplete="off"
+            oninput="renderAdditionalStudentOptions()"
+            onclick="renderAdditionalStudentOptions()"
+          />
+      
+          <div id="additionalStudentDropdown" class="search-dropdown hidden"></div>
+        </div>
+      
+        <div id="additionalSelectedStudents" class="selected-student-chips"></div>
+      </div>
       <label for="individualPoints">Punktu skaits</label>
       <input type="number" id="individualPoints" value="0" step="1" />
       <div class="quick-point-grid">
@@ -627,6 +686,7 @@
     let selectedSituationTower = "";
     let selectedProfileTower = "";
     let currentProfileStudent = null;
+    let additionalIndividualStudents = [];
     let allStudents = [];
     
     try {
@@ -738,7 +798,7 @@
       document.getElementById("individualReason").value = "";
     
       clearMessage("individualMessage");
-    
+      resetAdditionalIndividualStudents();
       goToPage("individualPointPage");
     }
     function showMessage(elementId, text, type) {
@@ -1083,7 +1143,7 @@
       document.getElementById("individualStudentDropdown").classList.add("hidden");
       document.getElementById("individualStudentDropdown").innerHTML = "";
       clearMessage("individualMessage");
-
+      resetAdditionalIndividualStudents();
       const studentsInTower = getStudentsForTower(selectedTower, "");
 
       if (studentsInTower.length === 0) {
@@ -1300,58 +1360,228 @@ async function openStudentProfileFromCard(studentId) {
         button.textContent = "Reģistrēt situāciju";
       }
     }
-
-
+    function getStudentById(studentId) {
+      return allStudents.find(student => {
+        return String(student.studentId) === String(studentId);
+      }) || null;
+    }
+    
+    
+    function getAllStudentsForAdditionalSearch(searchTerm) {
+      const normalizedSearch = normalizeTextForApp(searchTerm);
+      const mainStudentId = document.getElementById("studentSelect").value;
+    
+      return allStudents
+        .filter(student => {
+          const isMainStudent = String(student.studentId) === String(mainStudentId);
+    
+          const alreadySelected = additionalIndividualStudents.some(selectedStudent => {
+            return String(selectedStudent.studentId) === String(student.studentId);
+          });
+    
+          const searchableText = normalizeTextForApp(
+            student.displayName + " " +
+            student.firstName + " " +
+            student.lastName + " " +
+            student.tower
+          );
+    
+          return !isMainStudent &&
+            !alreadySelected &&
+            (!normalizedSearch || searchableText.includes(normalizedSearch));
+        })
+        .sort((a, b) => {
+          const towerCompare = String(a.tower).localeCompare(String(b.tower), "lv");
+    
+          if (towerCompare !== 0) {
+            return towerCompare;
+          }
+    
+          return a.displayName.localeCompare(b.displayName, "lv");
+        });
+    }
+    
+    
+    function renderAdditionalStudentOptions() {
+      const searchTerm = document.getElementById("additionalStudentSearch").value;
+      const dropdown = document.getElementById("additionalStudentDropdown");
+    
+      const students = getAllStudentsForAdditionalSearch(searchTerm);
+    
+      dropdown.innerHTML = "";
+    
+      if (students.length === 0) {
+        dropdown.innerHTML = "<div class='search-option-empty'>Nav atrasts neviens audzēknis</div>";
+        dropdown.classList.remove("hidden");
+        return;
+      }
+    
+      students.forEach(student => {
+        const option = document.createElement("div");
+        option.className = "search-option";
+        option.textContent = student.displayName + " — " + student.tower;
+    
+        option.onclick = function() {
+          addAdditionalIndividualStudent(student.studentId);
+        };
+    
+        dropdown.appendChild(option);
+      });
+    
+      dropdown.classList.remove("hidden");
+    }
+    
+    
+    function addAdditionalIndividualStudent(studentId) {
+      const student = getStudentById(studentId);
+    
+      if (!student) {
+        return;
+      }
+    
+      const alreadySelected = additionalIndividualStudents.some(selectedStudent => {
+        return String(selectedStudent.studentId) === String(student.studentId);
+      });
+    
+      if (alreadySelected) {
+        return;
+      }
+    
+      const mainStudentId = document.getElementById("studentSelect").value;
+    
+      if (String(student.studentId) === String(mainStudentId)) {
+        showMessage("individualMessage", "Šis audzēknis jau ir izvēlēts kā galvenais audzēknis.", "info");
+        return;
+      }
+    
+      additionalIndividualStudents.push(student);
+    
+      document.getElementById("additionalStudentSearch").value = "";
+      document.getElementById("additionalStudentDropdown").classList.add("hidden");
+      document.getElementById("additionalStudentDropdown").innerHTML = "";
+    
+      renderAdditionalSelectedStudents();
+    }
+    
+    
+    function removeAdditionalIndividualStudent(studentId) {
+      additionalIndividualStudents = additionalIndividualStudents.filter(student => {
+        return String(student.studentId) !== String(studentId);
+      });
+    
+      renderAdditionalSelectedStudents();
+    }
+    
+    
+    function renderAdditionalSelectedStudents() {
+      const container = document.getElementById("additionalSelectedStudents");
+    
+      if (!container) {
+        return;
+      }
+    
+      container.innerHTML = "";
+    
+      if (additionalIndividualStudents.length === 0) {
+        container.innerHTML = "<p>Nav pievienotu papildu audzēkņu.</p>";
+        return;
+      }
+    
+      additionalIndividualStudents.forEach(student => {
+        const chip = document.createElement("div");
+        chip.className = "student-chip";
+    
+        chip.innerHTML = `
+          <span>${escapeHtml(student.displayName)} — ${escapeHtml(student.tower)}</span>
+          <button type="button" onclick="removeAdditionalIndividualStudent('${escapeHtml(student.studentId)}')">×</button>
+        `;
+    
+        container.appendChild(chip);
+      });
+    }
+    
+    
+    function resetAdditionalIndividualStudents() {
+      additionalIndividualStudents = [];
+    
+      const searchInput = document.getElementById("additionalStudentSearch");
+      const dropdown = document.getElementById("additionalStudentDropdown");
+    
+      if (searchInput) {
+        searchInput.value = "";
+      }
+    
+      if (dropdown) {
+        dropdown.classList.add("hidden");
+        dropdown.innerHTML = "";
+      }
+    
+      renderAdditionalSelectedStudents();
+    }
     async function saveIndividualPoint() {
-      const studentId = document.getElementById("studentSelect").value;
+      const mainStudentId = document.getElementById("studentSelect").value;
       const points = document.getElementById("individualPoints").value;
       const reason = document.getElementById("individualReason").value.trim();
-
+    
       clearMessage("individualMessage");
-
-      if (!studentId) {
+    
+      if (!mainStudentId) {
         showMessage("individualMessage", "Lūdzu, izvēlies audzēkni no saraksta.", "error");
         return;
       }
-
+    
       if (!points || Number(points) === 0) {
         showMessage("individualMessage", "Punktu skaits nevar būt 0.", "error");
         return;
       }
-
+    
       if (!reason) {
         showMessage("individualMessage", "Lūdzu, ieraksti, par ko tiek piešķirts punkts.", "error");
         return;
       }
-
+    
+      const allSelectedStudentIds = [
+        mainStudentId,
+        ...additionalIndividualStudents.map(student => student.studentId)
+      ];
+    
+      const uniqueStudentIds = [...new Set(allSelectedStudentIds.map(id => String(id)))];
+    
       const button = document.getElementById("saveIndividualButton");
       button.disabled = true;
       button.textContent = "Saglabā...";
-
+    
       try {
-        const response = await apiCall({
-          action: "addIndividualPoint",
-          professorName: currentProfessorName,
-          pin: currentPin,
-          studentId: studentId,
-          points: points,
-          reason: reason
-        });
-
-        if (!response.success) {
-          showMessage("individualMessage", response.error || "Neizdevās saglabāt punktu.", "error");
-          return;
+        const savedStudents = [];
+    
+        for (const studentId of uniqueStudentIds) {
+          const response = await apiCall({
+            action: "addIndividualPoint",
+            professorName: currentProfessorName,
+            pin: currentPin,
+            studentId: studentId,
+            points: points,
+            reason: reason
+          });
+    
+          if (!response.success) {
+            throw new Error(response.error || "Neizdevās saglabāt punktu vienam no audzēkņiem.");
+          }
+    
+          savedStudents.push(response.student.displayName);
         }
-
+    
         showMessage(
           "individualMessage",
-          "Punkts pievienots: " + response.student.displayName + " " + formatPointChange(response.points),
+          "Punkti pievienoti " + savedStudents.length + " audzēkņiem: " +
+            savedStudents.join(", ") + " " + formatPointChange(points),
           "success"
         );
-
+    
         document.getElementById("individualReason").value = "";
         document.getElementById("individualPoints").value = 0;
-
+        resetAdditionalIndividualStudents();
+    
       } catch (error) {
         showMessage("individualMessage", error.message, "error");
       } finally {
@@ -1359,7 +1589,6 @@ async function openStudentProfileFromCard(studentId) {
         button.textContent = "Pievienot punktu";
       }
     }
-
 
     async function saveTowerPoint() {
       const points = document.getElementById("towerPoints").value;
@@ -1458,6 +1687,12 @@ async function openStudentProfileFromCard(studentId) {
           document.getElementById("studentSearch").value = student.displayName;
           document.getElementById("studentSelect").value = student.studentId;
           dropdown.classList.add("hidden");
+        
+          additionalIndividualStudents = additionalIndividualStudents.filter(extraStudent => {
+            return String(extraStudent.studentId) !== String(student.studentId);
+          });
+        
+          renderAdditionalSelectedStudents();
         };
     
         dropdown.appendChild(option);
@@ -1644,6 +1879,8 @@ function renderPreviousSituationEntries(entries) {
   window.reportSituationFromProfile = reportSituationFromProfile;
   window.addIndividualPointFromProfile = addIndividualPointFromProfile;
   window.chooseStudentsTower = chooseStudentsTower;
+  window.renderAdditionalStudentOptions = renderAdditionalStudentOptions;
+  window.removeAdditionalIndividualStudent = removeAdditionalIndividualStudent;
   </script>
 </body>
 </html>
