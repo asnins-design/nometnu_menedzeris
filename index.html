@@ -537,26 +537,8 @@
     <h2>Audzēkņa informācija</h2>
   
     <div id="studentProfileTowerText" class="selected-tower"></div>
-  
-    <label for="profileStudentSearch">Izvēlies audzēkni</label>
-  
-    <div class="search-combo">
-      <input
-        type="text"
-        id="profileStudentSearch"
-        placeholder="Sāc rakstīt vārdu vai uzvārdu..."
-        autocomplete="off"
-        oninput="renderProfileStudentOptions()"
-        onclick="renderProfileStudentOptions()"
-      />
-  
-      <div id="profileStudentDropdown" class="search-dropdown hidden"></div>
-    </div>
-  
+
     <input type="hidden" id="profileStudentSelect" />
-  
-    <button onclick="loadStudentProfile()">Skatīt informāciju</button>
-  
     <div id="studentProfileMessage" class="message"></div>
   
     <div id="studentProfileResult" class="hidden">
