@@ -336,7 +336,6 @@
       <button onclick="openPointsPage()">PUNKTI</button>
       <button onclick="openSituationRegister()">Situāciju reģistrs</button>
       <button onclick="openStudentsPage()">Audzēkņi</button>
-      <button onclick="openFlashcardsPage()">Datubāze</button>
       <button class="secondary-button" onclick="logout()">Iziet</button>
     </section>
 
@@ -524,15 +523,14 @@
   <h2>Audzēkņi — izvēlies torni</h2>
 
   <div class="tower-grid">
-    <button class="tower-button laci" onclick="chooseProfileTower('Lāči')">Lāči</button>
-    <button class="tower-button lusi" onclick="chooseProfileTower('Lūši')">Lūši</button>
-    <button class="tower-button puces" onclick="chooseProfileTower('Pūces')">Pūces</button>
-    <button class="tower-button vaveres" onclick="chooseProfileTower('Vāveres')">Vāveres</button>
+    <button class="tower-button laci" onclick="chooseStudentsTower('Lāči')">Lāči</button>
+    <button class="tower-button lusi" onclick="chooseStudentsTower('Lūši')">Lūši</button>
+    <button class="tower-button puces" onclick="chooseStudentsTower('Pūces')">Pūces</button>
+    <button class="tower-button vaveres" onclick="chooseStudentsTower('Vāveres')">Vāveres</button>
   </div>
 
   <button class="secondary-button" onclick="goToPage('menuPage')">Atpakaļ uz izvēlni</button>
 </section>
-
 
   <!-- STUDENT PROFILE PAGE -->
   <section id="studentProfilePage" class="card hidden">
@@ -614,20 +612,6 @@
     <button class="secondary-button" onclick="goToPage('menuPage')">Iet uz sākumu</button>
   </section>
 
-<!-- FLASHCARD TOWER CHOICE PAGE -->
-<section id="flashcardTowerPage" class="card hidden">
-  <h2>Atpazīsti audzēkņus — izvēlies torni</h2>
-
-  <div class="tower-grid">
-    <button class="tower-button laci" onclick="chooseFlashcardTower('Lāči')">Lāči</button>
-    <button class="tower-button lusi" onclick="chooseFlashcardTower('Lūši')">Lūši</button>
-    <button class="tower-button puces" onclick="chooseFlashcardTower('Pūces')">Pūces</button>
-    <button class="tower-button vaveres" onclick="chooseFlashcardTower('Vāveres')">Vāveres</button>
-  </div>
-
-  <button class="secondary-button" onclick="goToPage('menuPage')">Atpakaļ uz izvēlni</button>
-</section>
-
 
 <!-- FLASHCARDS PAGE -->
 <section id="flashcardsPage" class="card hidden">
@@ -637,7 +621,7 @@
 
   <div id="flashcardGrid" class="flashcard-grid"></div>
 
-  <button class="secondary-button" onclick="goToPage('flashcardTowerPage')">Atpakaļ uz torņiem</button>
+  <button class="secondary-button" onclick="goToPage('studentsTowerPage')">Atpakaļ uz torņiem</button>
   <button class="secondary-button" onclick="goToPage('menuPage')">Iet uz sākumu</button>
 </section>
 
@@ -767,7 +751,6 @@
         "situationFormPage",
         "studentsTowerPage",
         "studentProfilePage",
-        "flashcardTowerPage",
         "flashcardsPage"
       ];
     
@@ -1109,21 +1092,18 @@
       selectedSituationTower = "";
       goToPage("situationTypePage");
     }
-    function openFlashcardsPage() {
-  goToPage("flashcardTowerPage");
-}
+function chooseStudentsTower(towerName) {
+  selectedProfileTower = towerName;
 
-
-function chooseFlashcardTower(towerName) {
   document.getElementById("flashcardsTitle").textContent =
-    "Atpazīsti audzēkņus — " + towerName;
+    "Audzēkņi — " + towerName;
 
-  renderFlashcards(towerName);
+  renderStudentCards(towerName);
   goToPage("flashcardsPage");
 }
 
 
-function renderFlashcards(towerName) {
+function renderStudentCards(towerName) {
   const grid = document.getElementById("flashcardGrid");
   const message = document.getElementById("flashcardsMessage");
 
@@ -1148,16 +1128,28 @@ function renderFlashcards(towerName) {
 
     card.innerHTML = `
       ${photoHtml}
-      <div class="flashcard-name hidden-name">${escapeHtml(student.displayName)}</div>
+      <div class="flashcard-name">${escapeHtml(student.displayName)}</div>
     `;
 
     card.onclick = function() {
-      const name = card.querySelector(".flashcard-name");
-      name.classList.toggle("hidden-name");
+      openStudentProfileFromCard(student.studentId);
     };
 
     grid.appendChild(card);
   });
+}
+
+
+async function openStudentProfileFromCard(studentId) {
+  document.getElementById("profileStudentSelect").value = studentId;
+  document.getElementById("studentProfileTowerText").textContent =
+    "Tornis: " + selectedProfileTower;
+
+  document.getElementById("studentProfileResult").classList.add("hidden");
+  clearMessage("studentProfileMessage");
+
+  goToPage("studentProfilePage");
+  await loadStudentProfile();
 }
 
     function chooseSituationType(type) {
@@ -1633,8 +1625,7 @@ function renderPreviousSituationEntries(entries) {
   window.openStudentCommentsEditor = openStudentCommentsEditor;
   window.cancelStudentCommentsEdit = cancelStudentCommentsEdit;
   window.reportSituationFromProfile = reportSituationFromProfile;
-  window.openFlashcardsPage = openFlashcardsPage;
-  window.chooseFlashcardTower = chooseFlashcardTower;
+  window.chooseStudentsTower = chooseStudentsTower;
   </script>
 </body>
 </html>
